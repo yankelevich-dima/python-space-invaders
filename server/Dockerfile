@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:3.5
 
 RUN apt-get update -y && apt-get install -y python-psycopg2 gunicorn
 
