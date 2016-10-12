@@ -14,9 +14,9 @@ node {
             sh 'flake8 --exclude=venv ./'
             sh 'rm -rf venv'
 
-        } else if (env.BRANCH_NAME == 'master') {
+        if (env.BRANCH_NAME == 'master') {
             stage 'Deploy'
-                sh 'cd deploy && echo "91.107.108.164 ansible_ssh_user=deploy" > ./inventory.ini'
+                sh 'cd deploy && echo "http://193.124.177.175 ansible_ssh_user=deploy" > ./inventory.ini'
                 sh "cd deploy && ansible-playbook --private-key ~/.ssh/id_rsa -i inventory.ini playbook-deploy.yml --extra-vars \"BRANCH_NAME=${env.BRANCH_NAME} PORT=8001\""
         }
 
