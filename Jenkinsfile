@@ -6,14 +6,19 @@ node {
             checkout scm
 
         stage 'Test'
-            sh 'virtualenv venv'
+            sh 'virtualenv -p python3 venv'
+            sh 'flake8 --exclude=venv ./'
+
+            # Server tests
             sh '''#!/bin/bash
                 source ./venv/bin/activate
-                cd server && coverage run --omit tests.py tests.py
-                pertcentage=$(cd server && coverage report | grep TOTAL | rev | cut -c -3 | rev | cut -c -2)
+                pip install -r server/requirements.txt
+                coverage run --omit '*venv*' server/tests.py
+            '''
+            sh '''#!/bin/bash
+                percentage=$(coverage report --omit server/tests.py | grep TOTAL | rev | cut -c -3 | rev | cut -c -2)
                 if [ $percentage -lt 60 ]; then echo "Low coverage!"; exit 1; fi
             '''
-            sh 'flake8 --exclude=venv ./'
             sh 'rm -rf venv'
 
         if (env.BRANCH_NAME == 'master') {
