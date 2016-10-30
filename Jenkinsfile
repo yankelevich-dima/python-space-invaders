@@ -9,7 +9,6 @@ node {
             sh 'virtualenv -p python3 venv'
             sh 'flake8 --exclude=venv ./'
 
-            # Server tests
             sh '''#!/bin/bash
                 source ./venv/bin/activate
                 pip install -r server/requirements.txt
