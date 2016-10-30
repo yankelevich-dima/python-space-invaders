@@ -15,6 +15,12 @@ node {
                 coverage run --omit '*venv*' server/tests.py
             '''
             sh '''#!/bin/bash
+                source ./venv/bin/activate
+                coverage report --omit server/tests.py
+            '''
+
+            sh '''#!/bin/bash
+                source ./venv/bin/activate
                 percentage=$(coverage report --omit server/tests.py | grep TOTAL | rev | cut -c -3 | rev | cut -c -2)
                 if [ $percentage -lt 60 ]; then echo "Low coverage!"; exit 1; fi
             '''
