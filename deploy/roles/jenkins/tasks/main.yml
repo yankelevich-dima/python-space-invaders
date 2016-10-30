@@ -1,0 +1,13 @@
+- synchronize: src=../../../ dest=deploy
+
+- name: Creating jenkins volume
+  shell: docker volume create --name infra_jenkins-home || true
+
+- name: Stopping existing container
+  shell: cd deploy/jenkins && docker-compose -p infra down || true
+
+- name: Rebuilding docker-compose
+  shell: cd deploy/jenkins && docker-compose -p infra build
+
+- name: Starting container
+  shell: cd deploy/jenkins && docker-compose -p infra up -d

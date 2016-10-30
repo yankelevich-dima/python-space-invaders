@@ -1,0 +1,95 @@
+# install docker
+- name: Update system packages
+  shell: apt-get update
+  become_user: root
+  become: true
+
+- name: Install requirements for https deb's
+  shell: apt-get install -y apt-transport-https ca-certificates
+  become_user: root
+  become: true
+
+- name: Add GPG keyserver
+  shell: apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+  become_user: root
+  become: true
+
+- name: Add source
+  shell: echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" | tee /etc/apt/sources.list.d/docker.list
+  become_user: root
+  become: true
+
+- name: Update APT package index
+  shell: apt-get update
+  become_user: root
+  become: true
+
+- name: Cache policy
+  shell: apt-cache policy docker-engine
+  become_user: root
+  become: true
+
+- name: Update APT package index
+  shell: apt-get update
+  become_user: root
+  become: true
+
+- name: Install docker
+  shell: apt-get install -y docker-engine
+  become_user: root
+  become: true
+
+- name: Add user to docker group
+  shell: sudo usermod -aG docker $(whoami)
+
+
+# install docker compose
+- name: Install curl
+  shell: apt-get install -y curl
+  become_user: root
+  become: true
+
+- name: Download docker-compose
+  shell: curl -L https://github.com/docker/compose/releases/download/1.8.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+  become_user: root
+  become: true
+
+- name: Set docker compose executable
+  command: chmod +x /usr/local/bin/docker-compose
+  become_user: root
+  become: true
+
+# create user for deployment
+
+- name: create deploy user
+  command: adduser --disabled-password --gecos "" --home /data/deploy deploy
+  become_user: root
+  become: true
+
+- name: give user deploy docker group
+  shell: usermod -aG docker deploy
+  become_user: root
+  become: true
+
+
+- name: create ssh folder
+  shell: mkdir /data/deploy/.ssh/
+  become_user: deploy
+  become: true
+
+- name: write public key to authorized keys
+  shell: echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC2yrZc8yc4x0AwVAblp0Q1STxLkPrINJgG6ydVN0v1sHMRx/eUVwpYSxyGuiVBuaIfIBSHjnFVGKWyqTysB40f8x5fycLdXhSrUaQhVsuW/Hlv5hTCjjXfzAtQJ9afn0iLnCQWGIIOsft0chaVcHrb985y5IZRRSDgLNGuZmlUVhg94UZ3knDpLYYtukg/hMAo+2ShatFEG76+kYtnL8j8b9Dz3+kdx8qWW3c2g77YAMMVY5kdoaUjFAs5MLhEec7DHbxrJe/IMjgfLmF/cXs8PYYyxQaprren6iB/jksLMsIwn+/uIwwknu2xcAWFJ+hLfwkkaCjMjRz1VQetoc3R dmitry@yankelevich" > /data/deploy/.ssh/authorized_keys
+  become_user: deploy
+  become: true
+
+# start docker
+
+- name: start docker daemon
+  shell: service docker start
+  become_user: root
+  become: true
+
+- name: add default network
+  shell: docker network create infra_default
+  become_user: root
+  become: true
