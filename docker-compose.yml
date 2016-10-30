@@ -1,0 +1,56 @@
+---
+# base docker-compose configuration
+version: '2'
+
+volumes:
+  "postgres_data":
+    external:
+      name: postgres_data_${BRANCH_NAME}
+
+services:
+
+  postgresql:
+    build:
+      context: ./deploy/postgres/
+    hostname: "postgresql-${BRANCH_NAME}"
+    networks:
+      infra_default:
+        aliases:
+          - "postgresql-${BRANCH_NAME}"
+    environment:
+      APP_DATABASE: space-invaders
+      APP_USER: docker
+      APP_USER_PASSWORD: docker
+      POSTGRES_USER: postgres
+
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./server
+    hostname: "web-${BRANCH_NAME}"
+    networks:
+      infra_default:
+        aliases:
+          - "web-${BRANCH_NAME}"
+    user: root
+    ports:
+      - "${PORT}:8000"
+
+    environment:
+      BRANCH_NAME: ${BRANCH_NAME}
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      - postgresql
+
+    restart: unless-stopped
+
+networks:
+  infra_default:
+    external: true
