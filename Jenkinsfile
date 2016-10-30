@@ -9,7 +9,9 @@ node {
             sh 'virtualenv venv'
             sh '''#!/bin/bash
                 source ./venv/bin/activate
-                # run tests here
+                cd server && coverage run --omit tests.py tests.py
+                pertcentage=$(cd server && coverage report | grep TOTAL | rev | cut -c -3 | rev | cut -c -2)
+                if [ $percentage -lt 60 ]; then echo "Low coverage!"; exit 1; fi
             '''
             sh 'flake8 --exclude=venv ./'
             sh 'rm -rf venv'
