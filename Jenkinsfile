@@ -10,6 +10,7 @@ node {
 
             sh '''#!/bin/bash
                 source ./venv/bin/activate
+                pip install flake8
                 flake8 --exclude=venv ./
             '''
 
