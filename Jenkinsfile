@@ -17,7 +17,7 @@ node {
             sh '''#!/bin/bash
                 source ./venv/bin/activate
                 pip install -r server/requirements.txt
-                coverage run --omit '*venv*' server/tests.py
+                coverage run --omit '*venv*' --source './' server/tests.py
             '''
             sh '''#!/bin/bash
                 source ./venv/bin/activate
