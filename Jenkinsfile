@@ -7,7 +7,11 @@ node {
 
         stage 'Test'
             sh 'virtualenv -p python3.5 venv'
-            sh 'flake8 --exclude=venv ./'
+
+            sh '''#!/bin/bash
+                source ./venv/bin/activate
+                flake8 --exclude=venv ./
+            '''
 
             sh '''#!/bin/bash
                 source ./venv/bin/activate
