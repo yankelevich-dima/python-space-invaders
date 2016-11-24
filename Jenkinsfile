@@ -6,7 +6,7 @@ node {
             checkout scm
 
         stage 'Test'
-            sh 'virtualenv -p python3 venv'
+            sh 'virtualenv -p python3.5 venv'
             sh 'flake8 --exclude=venv ./'
 
             sh '''#!/bin/bash
