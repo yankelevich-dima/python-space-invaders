@@ -47,7 +47,7 @@ class GameObject(pygame.sprite.Sprite):
     def __str__(self):
         return '<{} 0x{}>'.format(self.__class__.__name__, id(self))
 
-    def __init__(self, size, offset, image=None, color=None):
+    def __init__(self, size, offset, color=None):
         super().__init__()
         self.health = None
 
@@ -389,6 +389,7 @@ class Game(object):
                     self.bullets.remove(bullet)
                     enemy.draw(self.screen)
                     loop = asyncio.get_event_loop()
+                    # TODO: magic number to config
                     loop.call_later(0.5, self.enemies.remove, enemy)
                     # Change enemy speed
                     speed_coef = (self.base_enemies_count - len(self.enemies)) / self.base_enemies_count
@@ -451,7 +452,7 @@ class Game(object):
                 self.platforms = PlatformGroup()
                 self.platforms.load(data['Platforms'])
                 self.bullets = pygame.sprite.Group()
-                print('WAVE {} PASSED'.format(self.current_wave))
+                LOGGER.info('WAVE {} PASSED'.format(self.current_wave))
                 self.current_wave += 1
             else:
                 self.end_game('Space invaders were destroyed')
