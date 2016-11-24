@@ -1,0 +1,44 @@
+{
+    "Enemies": [
+        {
+            "type": "SMALL",
+            "count": 12,
+            "distance": 18,
+            "base_offset": [14, 45]
+        },
+        {
+            "type": "MEDIUM",
+            "count": 12,
+            "distance": 12,
+            "base_offset": [11, 75]
+        },
+        {
+            "type": "MEDIUM",
+            "count": 12,
+            "distance": 12,
+            "base_offset": [11, 105]
+        },
+        {
+            "type": "HUGE",
+            "count": 12,
+            "distance": 10,
+            "base_offset": [10, 135]
+        },
+        {
+            "type": "HUGE",
+            "count": 12,
+            "distance": 10,
+            "base_offset": [10, 165]
+        }
+    ],
+    "Ufo": {
+        "offset": [-48, 10]
+    },
+    "Platforms": {
+        "count": 6,
+        "position_y": 350
+    },
+    "Player": {
+        "offset": [287, 440]
+    }
+}

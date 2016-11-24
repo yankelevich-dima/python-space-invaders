@@ -198,5 +198,6 @@ class ResponseTestCase(unittest.TestCase):
             self.assertEqual('ok', json.loads(response.data.decode('utf-8'))['status'])
             mock_login.assert_called_once_with(credentials['username'], credentials['password'])
 
+
 if __name__ == '__main__':
     unittest.main()
