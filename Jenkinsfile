@@ -6,13 +6,18 @@ node {
             checkout scm
 
         stage 'Test'
-            sh 'virtualenv -p python3 venv'
-            sh 'flake8 --exclude=venv ./'
+            sh 'virtualenv -p python3.5 venv'
+
+            sh '''#!/bin/bash
+                source ./venv/bin/activate
+                pip install flake8
+                flake8 --exclude=venv ./
+            '''
 
             sh '''#!/bin/bash
                 source ./venv/bin/activate
                 pip install -r server/requirements.txt
-                coverage run --omit '*venv*' server/tests.py
+                coverage run --omit '*venv*' --source './' server/tests.py
             '''
             sh '''#!/bin/bash
                 source ./venv/bin/activate
