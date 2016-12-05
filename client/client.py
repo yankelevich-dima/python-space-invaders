@@ -33,9 +33,8 @@ class GameClientProtocol(WebSocketClientProtocol):
                 })
                 self.Game.handle_event(request['message'])
             if request['type'] == 'time_sync':
-                base_time = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).tx_time
-                client_offset = time.time() - base_time
-                self.Game.syncronize_time(request['base_time'], request['base_time_offset'], client_offset)
+                offset = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).offset
+                self.Game.syncronize_time(request['offset'], offset)
 
     def onClose(self, wasClean, code, reason):
         if reason:

@@ -210,8 +210,7 @@ class Game(object):
         self.last_frames = []
         self.font = pygame.font.Font('./fonts/space_invaders.ttf', 15)
 
-    def syncronize_time(self, base_time, server_offset, client_offset):
-        self.base_time = base_time
+    def syncronize_time(self, server_offset, client_offset):
         self.server_offset = server_offset
         self.client_offset = client_offset
 

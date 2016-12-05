@@ -640,15 +640,11 @@ class Game(object):
 
     def run(self):
         pygame.init()
-
-        self.base_time = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).tx_time
-        self.base_time_offset = time.time() - self.base_time
-
+        self.time_offset = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).offset
         self.websocket.sendMessage(
             json.dumps({
                 'type': 'time_sync',
-                'base_time_offset': self.base_time_offset,
-                'base_time': self.base_time
+                'offset': self.time_offset
             }).encode('utf8')
         )
 
