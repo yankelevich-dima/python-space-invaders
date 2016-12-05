@@ -1,6 +1,7 @@
 from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
 import asyncio
 import datetime
+import time
 import sys
 
 from game import Game
@@ -15,13 +16,13 @@ class GameClientProtocol(WebSocketClientProtocol):
             'type': 'run_game'
         }
         self.sendMessage(json.dumps(data).encode('utf8'))
-        self.Game = Game(self, debug=False)
+        self.Game = Game(self, debug=True)
         self.Game.run()
 
     def onConnect(self, response):
         print('Server connected: {0}'.format(response.peer))
 
-    def onMessage(self, payload, isBinary):
+    async def onMessage(self, payload, isBinary):
         if not isBinary:
             request = json.loads(payload.decode('utf8'))
             if request['type'] == 'game_action':
@@ -30,7 +31,7 @@ class GameClientProtocol(WebSocketClientProtocol):
                     'size': sys.getsizeof(payload),
                     'server_time': datetime.datetime.strptime(request['server_time'], '%M:%S.%f')
                 })
-                self.Game.handle_event(request['message'])
+                await self.Game.handle_event(request['message'])
 
     def onClose(self, wasClean, code, reason):
         if reason:

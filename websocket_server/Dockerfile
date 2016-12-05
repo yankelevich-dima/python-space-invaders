@@ -1,10 +1,10 @@
 FROM python:3.5
 
+RUN apt-get update -y && apt-get install -y python-pygame alsa-utils
+
 RUN mkdir /app
 COPY . /app
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y python-pygame
 
 COPY requirements.txt ./
 

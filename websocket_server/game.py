@@ -546,12 +546,19 @@ class Game(object):
             }).encode('utf8')
         )
 
-    def game_tick(self):
+    async def game_tick(self):
 
         if self.game_over:
             return
 
-        # Stop animations and end game if all enemies are DEAD
+        loop = asyncio.get_event_loop()
+        loop.call_later(1 / GAME_CONFIG['TICK_RATE'], self.game_tick)
+
+        # Skip all animations if player is dead
+        if self.player.is_dead:
+            return
+
+        # Update world if all enemies are dead
         if not self.enemies:
             data = self.load_map()
             data_to_send = {'Create': [], 'Delete': []}
@@ -573,14 +580,6 @@ class Game(object):
             data_to_send['Create'].append(self.platforms.to_dict())
             self.send_objects(data_to_send)
 
-            loop = asyncio.get_event_loop()
-            loop.call_later(1 / GAME_CONFIG['TICK_RATE'], self.game_tick)
-            return
-
-        # Skip all animations if player is dead
-        if self.player.is_dead:
-            loop = asyncio.get_event_loop()
-            loop.call_later(1 / GAME_CONFIG['TICK_RATE'], self.game_tick)
             return
 
         data = {}

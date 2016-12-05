@@ -1,4 +1,5 @@
 import json
+import time
 import datetime
 import asyncio
 import logging
@@ -202,9 +203,10 @@ class Game(object):
         self.loop = asyncio.get_event_loop()
         self.logger = self.create_logger()
         self.last_frames = []
+        self.last = 0
         self.font = pygame.font.Font('./fonts/space_invaders.ttf', 15)
 
-    def draw_labels(self):
+    async def draw_labels(self):
         current_time = datetime.datetime.now()
         self.last_frames = [
             frame for frame in self.last_frames
@@ -247,13 +249,13 @@ class Game(object):
         self.draw_labels()
         pygame.display.update()
 
-    def delete_objects(self, elements):
+    async def delete_objects(self, elements):
         for element in elements:
             if element['type'] == 'Bullet':
                 bullet = [bullet for bullet in self.bullets if bullet.id == element['id']]
                 self.bullets.remove(bullet)
 
-    def create_objects(self, elements):
+    async def create_objects(self, elements):
         for element in elements:
             if element['type'] == 'Player':
                 # TODO: create update method
@@ -277,7 +279,7 @@ class Game(object):
                 bullet = Bullet(element['speed'], element['direction'], element['coordinates'], element['id'])
                 self.bullets.add(bullet)
 
-    def update_objects(self, elements):
+    async def update_objects(self, elements):
         for element in elements:
             if element['type'] == 'BulletGroup':
                 self.bullets.update()
@@ -308,22 +310,26 @@ class Game(object):
                 if platform.is_dead:
                     self.platforms.remove(platform)
 
-    def handle_event(self, data):
+    async def handle_event(self, data):
         if data.get('Delete', None):
-            self.delete_objects(data['Delete'])
+            await self.delete_objects(data['Delete'])
         if data.get('Create', None):
-            self.create_objects(data['Create'])
+            await self.create_objects(data['Create'])
         if data.get('Update', None):
-            self.update_objects(data['Update'])
+            await self.update_objects(data['Update'])
 
-        self.draw_objects()
-        self.send_user_events()
+        await self.draw_objects()
+        await self.send_user_events()
 
-    def send_user_events(self):
+    async def send_user_events(self):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 raise KeyboardInterrupt
+
+        if self.last:
+            self.logger.info((time.time() - self.last) * 10 ** 3)
+        self.last = time.time()
 
         # Handle user events and send them to server
 
