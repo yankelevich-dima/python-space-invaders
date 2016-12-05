@@ -2,7 +2,8 @@ import json
 import asyncio
 import random
 import logging
-import datetime
+import time
+import ntplib
 
 import pygame
 
@@ -541,7 +542,7 @@ class Game(object):
         self.websocket.sendMessage(
             json.dumps({
                 'type': 'game_action',
-                'server_time': datetime.datetime.now().strftime('%M:%S.%f'),
+                'server_time': time.time(),
                 'message': data
             }).encode('utf8')
         )
@@ -639,6 +640,17 @@ class Game(object):
 
     def run(self):
         pygame.init()
+
+        self.base_time = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).tx_time
+        self.base_time_offset = time.time() - self.base_time
+
+        self.websocket.sendMessage(
+            json.dumps({
+                'type': 'time_sync',
+                'base_time_offset': self.base_time_offset,
+                'base_time': self.base_time
+            }).encode('utf8')
+        )
 
         data = self.load_map()
         self.create_world(data)

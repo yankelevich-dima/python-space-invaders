@@ -21,6 +21,7 @@ class GameServerProtocol(WebSocketServerProtocol):
             if request['type'] == 'run_game':
                 self.Game = Game(self)
                 self.Game.run()
+
             elif request['type'] == 'player_event':
                 self.Game.handle_event(request['message'])
 

@@ -1,5 +1,6 @@
 import json
-import datetime
+import time
+import ntplib
 import asyncio
 import logging
 
@@ -209,23 +210,26 @@ class Game(object):
         self.last_frames = []
         self.font = pygame.font.Font('./fonts/space_invaders.ttf', 15)
 
+    def syncronize_time(self, base_time, server_offset, client_offset):
+        self.base_time = base_time
+        self.server_offset = server_offset
+        self.client_offset = client_offset
+
     def draw_labels(self):
-        current_time = datetime.datetime.now()
+        current_time = time.time()
         self.last_frames = [
             frame for frame in self.last_frames
-            if frame['date'] > (current_time - datetime.timedelta(seconds=1))
+            if frame['client_time'] > (current_time - 1)
         ]
 
         total_bytes = sum([frame['size'] for frame in self.last_frames])
-        server_time = self.last_frames[-1]['server_time']
-        client_time = datetime.datetime.now().strftime('%M:%S.%f')
-        client_time = datetime.datetime.strptime(client_time, '%M:%S.%f')
-        latency_delta = (client_time - server_time)
-        latency = latency_delta.microseconds + latency_delta.seconds * 10 ** 6
+        server_time = self.last_frames[-1]['server_time'] - self.server_offset
+        client_time = current_time - self.client_offset
+        latency = (client_time - server_time) * 10 ** 6
 
         # TODO: colors and offsets to config
         wave_label = self.font.render('Current wave: {}'.format(self.wave), 1, (127, 242, 25))
-        latency_label = self.font.render('Latency: {} ms'.format(latency // 1000), 1, (127, 242, 25))
+        latency_label = self.font.render('Latency: {} ms'.format(int(latency // 1000)), 1, (127, 242, 25))
         speed_label = self.font.render('Speed: {} KB/s'.format(total_bytes // 1024), 1, (127, 242, 25))
         fps_label = self.font.render('FPS: {}'.format(len(self.last_frames)), 1, (127, 242, 25))
         lives_label = self.font.render('Lives: {}'.format(self.player.lives), 1, (127, 242, 25))
@@ -343,10 +347,6 @@ class Game(object):
             player_direction = DIRECTION_LEFT
         elif keys[pygame.K_RIGHT] and not keys[pygame.K_LEFT]:
             player_direction = DIRECTION_RIGHT
-
-        if self.debug:
-            player_shoot = True
-            player_direction = DIRECTION_LEFT
 
         if player_direction or player_shoot:
             self.websocket.sendMessage(json.dumps({

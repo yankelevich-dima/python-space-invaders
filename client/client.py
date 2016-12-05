@@ -1,7 +1,8 @@
 from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
 import asyncio
-import datetime
+import time
 import sys
+import ntplib
 
 from game import Game
 
@@ -26,11 +27,15 @@ class GameClientProtocol(WebSocketClientProtocol):
             request = json.loads(payload.decode('utf8'))
             if request['type'] == 'game_action':
                 self.Game.last_frames.append({
-                    'date': datetime.datetime.now(),
+                    'client_time': time.time(),
                     'size': sys.getsizeof(payload),
-                    'server_time': datetime.datetime.strptime(request['server_time'], '%M:%S.%f')
+                    'server_time': float(request['server_time'])
                 })
                 self.Game.handle_event(request['message'])
+            if request['type'] == 'time_sync':
+                base_time = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).tx_time
+                client_offset = time.time() - base_time
+                self.Game.syncronize_time(request['base_time'], request['base_time_offset'], client_offset)
 
     def onClose(self, wasClean, code, reason):
         if reason:
@@ -45,7 +50,7 @@ if __name__ == '__main__':
     factory.protocol = GameClientProtocol
 
     loop = asyncio.get_event_loop()
-    coro = loop.create_connection(factory, '193.124.177.175', 9003)
+    coro = loop.create_connection(factory, '127.0.0.1', 9003)
     loop.run_until_complete(coro)
 
     try:
