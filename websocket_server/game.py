@@ -546,7 +546,7 @@ class Game(object):
             }).encode('utf8')
         )
 
-    async def game_tick(self):
+    def game_tick(self):
 
         if self.game_over:
             return
@@ -636,9 +636,6 @@ class Game(object):
             self.logger.debug('UFO created')
 
         self.send_objects(data)
-
-        loop = asyncio.get_event_loop()
-        loop.call_later(1 / GAME_CONFIG['TICK_RATE'], self.game_tick)
 
     def run(self):
         pygame.init()
