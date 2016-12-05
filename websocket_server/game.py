@@ -356,6 +356,7 @@ class Game(object):
         self.player_shoot = False
         self.player_direction = DIRECTION_STAY
         self.logger = self.create_logger()
+        self.loop = asyncio.get_event_loop()
 
     def create_logger(self):
         logger = logging.getLogger(str(self))
@@ -465,9 +466,8 @@ class Game(object):
             # If bullet collide with UFO
             if pygame.sprite.collide_rect(bullet, self.UFO) and isinstance(bullet.parent, Player):
                 self.UFO.hit(bullet.strength)
-                loop = asyncio.get_event_loop()
                 # TODO: magic number to config
-                loop.call_later(0.5, self.UFO.hide)
+                self.loop.call_later(0.5, self.UFO.hide)
                 self.bullets.remove(bullet)
                 data['Delete'].append({
                     'type': 'Bullet',
@@ -493,9 +493,8 @@ class Game(object):
                             'type': 'Bullet',
                             'id': id(bullet)
                         })
-                        loop = asyncio.get_event_loop()
                         # TODO: magic number to config
-                        loop.call_later(0.5, self.enemies.remove, enemy)
+                        self.loop.call_later(0.5, self.enemies.remove, enemy)
                         # Change enemy speed
                         speed_coef = (self.base_enemies_count - len(self.enemies)) / self.base_enemies_count
                         max_speed = ENEMY_CONFIG['MAX_SPEED'] * self.current_wave
@@ -511,15 +510,14 @@ class Game(object):
                     'type': 'Bullet',
                     'id': id(bullet)
                 })
-                loop = asyncio.get_event_loop()
                 if self.player.lives:
                     # Rebirth after 1 second
                     self.logger.info('Player dead, rebithing after 1 second')
-                    loop.call_later(1, self.player.rebirth)
+                    self.loop.call_later(1, self.player.rebirth)
                 else:
                     # Game end after 1 second
                     self.logger.info('Player out of lives')
-                    loop.call_later(1, self.end_game, 'All cannons were destroyed')
+                    self.loop.call_later(1, self.end_game, 'All cannons were destroyed')
 
         return data
 
@@ -535,8 +533,7 @@ class Game(object):
         if self.game_over:
             return
 
-        loop = asyncio.get_event_loop()
-        loop.call_later(1 / self.enemy_speed, self.enemy_game_tick)
+        self.loop.call_later(1 / self.enemy_speed, self.enemy_game_tick)
 
     def send_objects(self, data):
         self.websocket.sendMessage(
@@ -552,8 +549,7 @@ class Game(object):
         if self.game_over:
             return
 
-        loop = asyncio.get_event_loop()
-        loop.call_later(1 / GAME_CONFIG['TICK_RATE'], self.game_tick)
+        self.loop.call_later(1 / GAME_CONFIG['TICK_RATE'], self.game_tick)
 
         # Skip all animations if player is dead
         if self.player.is_dead:
@@ -638,21 +634,26 @@ class Game(object):
 
         self.send_objects(data)
 
-    def run(self):
-        pygame.init()
-        self.time_offset = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).offset
+    def syncronize_time(self):
+        offset = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).offset
         self.websocket.sendMessage(
             json.dumps({
                 'type': 'time_sync',
-                'offset': self.time_offset
+                'offset': offset
             }).encode('utf8')
         )
+        # TODO: incremental syncronization ???
+        # self.loop.call_later(1, self.syncronize_time)
+
+    def run(self):
+        pygame.init()
+
+        self.syncronize_time()
 
         data = self.load_map()
         self.create_world(data)
 
-        loop = asyncio.get_event_loop()
         # Game ticks init with enemy steps
-        loop.call_later(1, self.game_tick)
+        self.loop.call_later(1, self.game_tick)
         # Base game ticks init
-        loop.call_later(1 / self.enemy_speed, self.enemy_game_tick)
+        self.loop.call_later(1 / self.enemy_speed, self.enemy_game_tick)
