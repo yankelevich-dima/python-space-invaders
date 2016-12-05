@@ -9,4 +9,4 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install -r requirements.txt
 
-CMD cd server && gunicorn -b 0.0.0.0:8000 -w 4 -t 360 --log-level debug server:app
+CMD cd /app/flask_server && gunicorn -b 0.0.0.0:8000 -w 4 -t 360 --log-level debug server:app

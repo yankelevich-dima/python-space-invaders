@@ -3,11 +3,8 @@
 - name: Creating postgres volume
   shell: docker volume create --name=postgres_data_{{ BRANCH_NAME }} || true
 
-- name: Stopping existing containers
-  shell: cd python-space-invaders-{{ BRANCH_NAME }} && PORT={{ PORT }} BRANCH_NAME={{ BRANCH_NAME }} docker-compose -p jenkins_{{ BRANCH_NAME }} down || true
-
 - name: Rebuilding docker-compose
-  shell: cd python-space-invaders-{{ BRANCH_NAME }} && PORT={{ PORT }} BRANCH_NAME={{ BRANCH_NAME }} docker-compose -p jenkins_{{ BRANCH_NAME }} build
+  shell: cd python-space-invaders-{{ BRANCH_NAME }} && FLASK_PORT={{ FLASK_PORT }} && WEBSOCKET_PORT={{ WEBSOCKET_PORT }} BRANCH_NAME={{ BRANCH_NAME }} docker-compose -p jenkins_{{ BRANCH_NAME }} build
 
 - name: Starting containers
-  shell: cd python-space-invaders-{{ BRANCH_NAME }} && PORT={{ PORT }} BRANCH_NAME={{ BRANCH_NAME }} docker-compose -p jenkins_{{ BRANCH_NAME }} up -d
+  shell: cd python-space-invaders-{{ BRANCH_NAME }} && FLASK_PORT={{ FLASK_PORT }} && WEBSOCKET_PORT={{ WEBSOCKET_PORT }} BRANCH_NAME={{ BRANCH_NAME }} docker-compose -p jenkins_{{ BRANCH_NAME }} up -d

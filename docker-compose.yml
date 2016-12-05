@@ -28,17 +28,17 @@ services:
 
     restart: unless-stopped
 
-  web:
+  flask:
     build:
-      context: ./server
-    hostname: "web-${BRANCH_NAME}"
+      context: ./flask_server/
+    hostname: "flask-${BRANCH_NAME}"
     networks:
       infra_default:
         aliases:
-          - "web-${BRANCH_NAME}"
+          - "flask-${BRANCH_NAME}"
     user: root
     ports:
-      - "${PORT}:8000"
+      - "${FLASK_PORT}:8000"
 
     environment:
       BRANCH_NAME: ${BRANCH_NAME}
@@ -50,6 +50,29 @@ services:
       - postgresql
 
     restart: unless-stopped
+
+  websocket:
+    build:
+      context: ./websocket_server/
+    hostname: "websocket-${BRANCH_NAME}"
+    networks:
+      infra_default:
+        aliases:
+          - "websocket-${BRANCH_NAME}"
+    user: root
+    ports:
+      - "${WEBSOCKET_PORT}:9000"
+
+    environment:
+      BRANCH_NAME: ${BRANCH_NAME}
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      - postgresql
+
+    restart: unless-stopped`
 
 networks:
   infra_default:
