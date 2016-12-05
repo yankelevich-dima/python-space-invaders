@@ -1,10 +1,14 @@
 import json
-import time
 import datetime
 import asyncio
 import logging
 
-import pygame
+try:
+    import pygame_sdl2 as pygame
+    USING_SDL2 = True
+except ImportError:
+    import pygame
+    USING_SDL2 = False
 
 from config import ENEMY_CONFIG, GAME_CONFIG, PLATFORM_CONFIG, PLAYER_CONFIG
 
@@ -203,10 +207,9 @@ class Game(object):
         self.loop = asyncio.get_event_loop()
         self.logger = self.create_logger()
         self.last_frames = []
-        self.last = 0
         self.font = pygame.font.Font('./fonts/space_invaders.ttf', 15)
 
-    async def draw_labels(self):
+    def draw_labels(self):
         current_time = datetime.datetime.now()
         self.last_frames = [
             frame for frame in self.last_frames
@@ -249,13 +252,13 @@ class Game(object):
         self.draw_labels()
         pygame.display.update()
 
-    async def delete_objects(self, elements):
+    def delete_objects(self, elements):
         for element in elements:
             if element['type'] == 'Bullet':
                 bullet = [bullet for bullet in self.bullets if bullet.id == element['id']]
                 self.bullets.remove(bullet)
 
-    async def create_objects(self, elements):
+    def create_objects(self, elements):
         for element in elements:
             if element['type'] == 'Player':
                 # TODO: create update method
@@ -279,7 +282,7 @@ class Game(object):
                 bullet = Bullet(element['speed'], element['direction'], element['coordinates'], element['id'])
                 self.bullets.add(bullet)
 
-    async def update_objects(self, elements):
+    def update_objects(self, elements):
         for element in elements:
             if element['type'] == 'BulletGroup':
                 self.bullets.update()
@@ -310,26 +313,22 @@ class Game(object):
                 if platform.is_dead:
                     self.platforms.remove(platform)
 
-    async def handle_event(self, data):
+    def handle_event(self, data):
         if data.get('Delete', None):
-            await self.delete_objects(data['Delete'])
+            self.delete_objects(data['Delete'])
         if data.get('Create', None):
-            await self.create_objects(data['Create'])
+            self.create_objects(data['Create'])
         if data.get('Update', None):
-            await self.update_objects(data['Update'])
+            self.update_objects(data['Update'])
 
-        await self.draw_objects()
-        await self.send_user_events()
+        self.draw_objects()
+        self.send_user_events()
 
-    async def send_user_events(self):
+    def send_user_events(self):
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 raise KeyboardInterrupt
-
-        if self.last:
-            self.logger.info((time.time() - self.last) * 10 ** 3)
-        self.last = time.time()
 
         # Handle user events and send them to server
 
@@ -378,6 +377,7 @@ class Game(object):
     def run(self):
         pygame.init()
         pygame.display.set_caption('Space Invaders')
-        self.screen = pygame.display.set_mode(GAME_CONFIG['DISPLAY_SIZE'])
-        self.background = pygame.Surface(GAME_CONFIG['DISPLAY_SIZE'])
+        self.screen = pygame.display.set_mode(GAME_CONFIG['DISPLAY_SIZE'], pygame.DOUBLEBUF, 32)
+        flags = pygame.SRCALPHA if USING_SDL2 else 0
+        self.background = pygame.Surface(GAME_CONFIG['DISPLAY_SIZE'], flags)
         self.background.fill(pygame.Color(GAME_CONFIG['BACKGROUND_COLOR']))
