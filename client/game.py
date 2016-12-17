@@ -1,6 +1,5 @@
 import json
 import time
-import ntplib
 import asyncio
 import logging
 
@@ -209,6 +208,7 @@ class Game(object):
         self.logger = self.create_logger()
         self.last_frames = []
         self.font = pygame.font.Font('./fonts/space_invaders.ttf', 15)
+        self.last = 0
 
     def syncronize_time(self, client_offset, server_offset):
         self.server_offset = server_offset
@@ -326,6 +326,23 @@ class Game(object):
 
         self.draw_objects()
         self.send_user_events()
+
+    def game_over(self, data):
+        font = pygame.font.Font('./fonts/space_invaders.ttf', 36)
+        small_font = pygame.font.Font('./fonts/space_invaders.ttf', 20)
+        label_game_over = font.render('GAME OVER', 1, (127, 242, 25))
+        label_reason = small_font.render(data['reason'], 1, (127, 242, 25))
+        label_player_score = small_font.render('Your score: {}'.format(data['player_score']), 1, (127, 242, 25))
+        self.screen.blit(self.background, (0, 0))
+        self.screen.blit(label_game_over, ((self.background.get_width() - label_game_over.get_width()) // 2, 170))
+        self.screen.blit(label_reason, ((self.background.get_width() - label_reason.get_width()) // 2, 250))
+        self.screen.blit(label_player_score, ((self.background.get_width() - label_player_score.get_width()) // 2, 300))
+        pygame.display.update()
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    raise KeyboardInterrupt
 
     def send_user_events(self):
 
