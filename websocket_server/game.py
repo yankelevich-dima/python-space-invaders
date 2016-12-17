@@ -524,6 +524,15 @@ class Game(object):
     def end_game(self, message):
         # TODO: create window with message
         self.logger.info(message)
+        self.websocket.sendMessage(
+            json.dumps({
+                'type': 'game_over',
+                'message': {
+                    'player_score': self.player.score,
+                    'reason': message
+                }
+            }).encode('utf8')
+        )
         self.websocket.sendClose()
         self.game_over = True
 
