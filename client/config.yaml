@@ -5,7 +5,7 @@
 GAME_PARAMS:
 
   DISPLAY_SIZE: [600, 480]
-  BACKGROUND_COLOR: '#222222'
+  BACKGROUND_COLOR: '#111111'
 
 ################################
 # Params for all enemies
