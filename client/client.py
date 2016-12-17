@@ -2,7 +2,6 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientF
 import asyncio
 import time
 import sys
-import ntplib
 import requests
 
 from game import Game
@@ -21,9 +20,21 @@ class GameClientProtocol(WebSocketClientProtocol):
         self.sendMessage(json.dumps(data).encode('utf8'))
         self.Game = Game(self, debug=False)
         self.Game.run()
+        self.loop = asyncio.get_event_loop()
+        self.ping_server()
+        self.latency = 0
 
     def onConnect(self, response):
         print('Server connected: {0}'.format(response.peer))
+
+    def onPong(self, payload):
+        current_time = time.time()
+        self.latency = int((current_time - float(payload)) * 10 ** 3)
+        self.loop.call_later(1 / 5, self.ping_server)
+
+    def ping_server(self):
+        current_time = str(time.time()).encode('utf8')
+        self.sendPing(current_time)
 
     def onMessage(self, payload, isBinary):
         if not isBinary:
@@ -31,13 +42,9 @@ class GameClientProtocol(WebSocketClientProtocol):
             if request['type'] == 'game_action':
                 self.Game.last_frames.append({
                     'client_time': time.time(),
-                    'size': sys.getsizeof(payload),
-                    'server_time': float(request['server_time'])
+                    'size': sys.getsizeof(payload)
                 })
                 self.Game.handle_event(request['message'])
-            if request['type'] == 'time_sync':
-                offset = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).offset
-                self.Game.syncronize_time(request['offset'], offset)
             if request['type'] == 'game_over':
                 self.Game.game_over(request['message'])
 

@@ -14,6 +14,10 @@ class GameServerProtocol(WebSocketServerProtocol):
     def onOpen(self):
         print('Opened')
 
+    def opPing(self, payload):
+        if self.state == WebSocketServerProtocol.STATE_OPEN:
+            self.sendPong(payload)
+
     async def onMessage(self, payload, isBinary):
         if not isBinary:
             request = json.loads(payload.decode('utf8'))

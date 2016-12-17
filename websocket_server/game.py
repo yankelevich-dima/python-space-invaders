@@ -548,7 +548,6 @@ class Game(object):
         self.websocket.sendMessage(
             json.dumps({
                 'type': 'game_action',
-                'server_time': time.time(),
                 'message': data
             }).encode('utf8')
         )
@@ -643,21 +642,8 @@ class Game(object):
 
         self.send_objects(data)
 
-    def syncronize_time(self):
-        offset = ntplib.NTPClient().request('europe.pool.ntp.org', version=3).offset
-        self.websocket.sendMessage(
-            json.dumps({
-                'type': 'time_sync',
-                'offset': offset
-            }).encode('utf8')
-        )
-        # TODO: incremental syncronization ???
-        # self.loop.call_later(1, self.syncronize_time)
-
     def run(self):
         pygame.init()
-
-        self.syncronize_time()
 
         data = self.load_map()
         self.create_world(data)

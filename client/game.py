@@ -210,25 +210,17 @@ class Game(object):
         self.font = pygame.font.Font('./fonts/space_invaders.ttf', 15)
         self.last = 0
 
-    def syncronize_time(self, client_offset, server_offset):
-        self.server_offset = server_offset
-        self.client_offset = client_offset
-
     def draw_labels(self):
         current_time = time.time()
         self.last_frames = [
             frame for frame in self.last_frames
             if frame['client_time'] > (current_time - 1)
         ]
-
         total_bytes = sum([frame['size'] for frame in self.last_frames])
-        server_time = self.last_frames[-1]['server_time'] - self.server_offset
-        client_time = current_time - self.client_offset
-        latency = (client_time - server_time) * 10 ** 6
 
         # TODO: colors and offsets to config
         wave_label = self.font.render('Current wave: {}'.format(self.wave), 1, (127, 242, 25))
-        latency_label = self.font.render('Latency: {} ms'.format(int(latency // 1000)), 1, (127, 242, 25))
+        latency_label = self.font.render('Latency: {} ms'.format(self.websocket.latency), 1, (127, 242, 25))
         speed_label = self.font.render('Speed: {} KB/s'.format(total_bytes // 1024), 1, (127, 242, 25))
         fps_label = self.font.render('FPS: {}'.format(len(self.last_frames)), 1, (127, 242, 25))
         lives_label = self.font.render('Lives: {}'.format(self.player.lives), 1, (127, 242, 25))
