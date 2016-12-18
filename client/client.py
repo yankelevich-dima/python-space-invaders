@@ -2,51 +2,57 @@ from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientF
 import asyncio
 import time
 import sys
-import requests
 
 from game import Game
 from login_interface import RequestInterface
 
-from config import SERVER_URI
 import json
 
 
 class GameClientProtocol(WebSocketClientProtocol):
 
+    def onConnect(self, response):
+        print('Server connected: {0}'.format(response.peer))
+
     def onOpen(self):
-        data = {
-            'type': 'run_game'
-        }
-        self.sendMessage(json.dumps(data).encode('utf8'))
+        self.Game = None
+        RequestInterface(self).run()
+
+    def onMessage(self, payload, isBinary):
+        if not isBinary:
+            request = json.loads(payload.decode('utf8'))
+
+            if request['type'] == 'auth_error':
+                print(request['message'])
+                RequestInterface(self).run()
+
+            if request['type'] == 'game_action':
+                if self.Game is None:
+                    self.run_game()
+                self.Game.last_frames.append({
+                    'client_time': time.time(),
+                    'size': sys.getsizeof(payload)
+                })
+                self.Game.handle_event(request['message'])
+
+            if request['type'] == 'game_over':
+                self.Game.game_over(request['message'])
+
+    def run_game(self):
         self.Game = Game(self, debug=False)
         self.Game.run()
         self.loop = asyncio.get_event_loop()
         self.ping_server()
         self.latency = 0
 
-    def onConnect(self, response):
-        print('Server connected: {0}'.format(response.peer))
+    def ping_server(self):
+        current_time = str(time.time()).encode('utf8')
+        self.sendPing(current_time)
 
     def onPong(self, payload):
         current_time = time.time()
         self.latency = int((current_time - float(payload)) * 10 ** 3)
         self.loop.call_later(1 / 5, self.ping_server)
-
-    def ping_server(self):
-        current_time = str(time.time()).encode('utf8')
-        self.sendPing(current_time)
-
-    def onMessage(self, payload, isBinary):
-        if not isBinary:
-            request = json.loads(payload.decode('utf8'))
-            if request['type'] == 'game_action':
-                self.Game.last_frames.append({
-                    'client_time': time.time(),
-                    'size': sys.getsizeof(payload)
-                })
-                self.Game.handle_event(request['message'])
-            if request['type'] == 'game_over':
-                self.Game.game_over(request['message'])
 
     def onClose(self, wasClean, code, reason):
         if reason:
@@ -74,66 +80,5 @@ class GameClient(object):
             self.loop.close()
 
 
-class APIConnectorException(BaseException):
-    def __init__(self, message):
-        self.message = message
-
-    def __str__(self):
-        return 'APIConnectorException {}'.format(self.message)
-
-
-class APIConnector(object):
-
-    @staticmethod
-    def registration(username, password):
-        try:
-            credentials = {
-                'username': username,
-                'password': password,
-            }
-            response = requests.post('{}/api/v1/registration/'.format(SERVER_URI), data=credentials)
-            if response.status_code == requests.codes.ok:
-                if response.json()['status'] == 'ok':
-                    pass
-                elif response.json()['status'] == 'failed':
-                    raise APIConnectorException(response.json()['message'])
-            else:
-                raise APIConnectorException(response.text)
-        except requests.exceptions.ConnectionError as e:
-            raise APIConnectorException(e)
-
-    @staticmethod
-    def login(username, password):
-        credentials = {
-            'username': username,
-            'password': password,
-        }
-        try:
-            response = requests.post('{}/api/v1/login/'.format(SERVER_URI), data=credentials)
-            if response.status_code == requests.codes.ok:
-                if response.json()['status'] == 'ok':
-                    pass
-                elif response.json()['status'] == 'failed':
-                    raise APIConnectorException(response.json()['message'])
-            else:
-                raise APIConnectorException(response.text)
-        except requests.exceptions.ConnectionError as e:
-            raise APIConnectorException(e)
-
 if __name__ == '__main__':
-
-    while 1:
-        username, password, auth_type = RequestInterface().run()
-        if auth_type == 'login':
-            try:
-                APIConnector.login(username, password)
-            except APIConnectorException:
-                continue
-        elif auth_type == 'registration':
-            try:
-                APIConnector.registration(username, password)
-            except APIConnectorException:
-                continue
-        break
-
     GameClient().run()

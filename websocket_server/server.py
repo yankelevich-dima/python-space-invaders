@@ -1,14 +1,15 @@
 import asyncio
 import json
-
 from autobahn.asyncio.websocket import WebSocketServerProtocol, WebSocketServerFactory
 
 from game import Game
+from models import User
 
 
 class GameServerProtocol(WebSocketServerProtocol):
 
     def onConnect(self, request):
+        self.Game = None
         print('Connected with {}'.format(request.peer))
 
     def onOpen(self):
@@ -22,16 +23,36 @@ class GameServerProtocol(WebSocketServerProtocol):
         if not isBinary:
             request = json.loads(payload.decode('utf8'))
 
-            if request['type'] == 'run_game':
-                self.Game = Game(self)
-                self.Game.run()
+            if request['type'] == 'login':
+                user = User.check_user_login(request['username'], request['password'])
+                if not user:
+                    self.sendMessage(json.dumps({
+                        'type': 'auth_error',
+                        'message': 'Wrong login or password'
+                    }).encode('utf8'))
+                else:
+                    self.Game = Game(self, user)
+                    self.Game.run()
+
+            elif request['type'] == 'registration':
+                user = User(request['username'], request['password']).save_to_db()
+                if not user:
+                    self.sendMessage(json.dumps({
+                        'type': 'auth_error',
+                        'message': 'User already exists'
+                    }).encode('utf8'))
+                else:
+                    print(user)
+                    self.Game = Game(self, user)
+                    self.Game.run()
 
             elif request['type'] == 'player_event':
                 self.Game.handle_event(request['message'])
 
     def onClose(self, wasClean, code, reason):
         if reason:
-            self.Game.end_game('Game was crashed unexpectedly')
+            if self.Game is not None:
+                self.Game.end_game('Game was crashed unexpectedly', wasClean=False)
             print(reason)
 
 if __name__ == '__main__':

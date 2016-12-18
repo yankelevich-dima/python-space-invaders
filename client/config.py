@@ -14,8 +14,6 @@ ENEMY_CONFIG = config['ENEMY_PARAMS']
 PLATFORM_CONFIG = config['PLATFORM_PARAMS']
 PLAYER_CONFIG = config['PLAYER_PARAMS']
 
-SERVER_URI = 'http://193.124.177.175:8002'
-
 LOGGER = logging.getLogger(__name__)
 formatter = logging.Formatter('[%(asctime)s] - %(levelname)s - %(message)s')
 

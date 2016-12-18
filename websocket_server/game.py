@@ -2,12 +2,11 @@ import json
 import asyncio
 import random
 import logging
-import time
-import ntplib
 
 import pygame
 
 from config import ENEMY_CONFIG, GAME_CONFIG, PLATFORM_CONFIG, PLAYER_CONFIG
+from models import User
 
 DIRECTION_STAY = 0
 DIRECTION_RIGHT = 1
@@ -341,7 +340,8 @@ class Game(object):
     def __str__(self):
         return '<Game 0x{}>'.format(id(self))
 
-    def __init__(self, websocket, debug=False):
+    def __init__(self, websocket, user, debug=False):
+        self.user = user
         self.enemy_direction = DIRECTION_RIGHT
         self.enemy_speed = ENEMY_CONFIG['BASE_SPEED']
         self.enemies = EnemyGroup()
@@ -521,18 +521,20 @@ class Game(object):
 
         return data
 
-    def end_game(self, message):
+    def end_game(self, message, wasClean=True):
         # TODO: create window with message
         self.logger.info(message)
-        self.websocket.sendMessage(
-            json.dumps({
-                'type': 'game_over',
-                'message': {
-                    'player_score': self.player.score,
-                    'reason': message
-                }
-            }).encode('utf8')
-        )
+        if wasClean:
+            self.websocket.sendMessage(
+                json.dumps({
+                    'type': 'game_over',
+                    'message': {
+                        'player_score': self.player.score,
+                        'reason': message
+                    }
+                }).encode('utf8')
+            )
+            self.user.update_highscore(self.player.score)
         self.websocket.sendClose()
         self.game_over = True
 

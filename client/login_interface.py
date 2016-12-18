@@ -1,3 +1,4 @@
+import json
 import pygame_sdl2 as pygame
 
 MOUSE_BUTTON_LEFT = 1
@@ -85,7 +86,10 @@ class TextArea(pygame.sprite.Sprite):
 
 class RequestInterface(object):
 
-    def __init__(self):
+    def __init__(self, websocket):
+
+        self.websocket = websocket
+
         pygame.init()
         pygame.font.init()
 
@@ -131,7 +135,7 @@ class RequestInterface(object):
             for event in pygame.event.get():
 
                 if event.type == pygame.QUIT:
-                    return
+                    raise KeyboardInterrupt
 
                 elif event.type == pygame.KEYDOWN:
                     pressed_keys = pygame.key.get_pressed()
@@ -149,8 +153,18 @@ class RequestInterface(object):
                         self.password_area.activate()
                         self.username_area.deactivate()
                     elif self.login_button.rect.collidepoint(pos):
-                        return self.username_area.text, self.password_area.text, 'login'
+                        self.websocket.sendMessage(json.dumps({
+                            'type': 'login',
+                            'username': self.username_area.text,
+                            'password': self.password_area.text
+                        }).encode('utf8'))
+                        return
                     elif self.register_button.rect.collidepoint(pos):
-                        return self.username_area.text, self.password_area.text, 'register'
+                        self.websocket.sendMessage(json.dumps({
+                            'type': 'registration',
+                            'username': self.username_area.text,
+                            'password': self.password_area.text
+                        }).encode('utf8'))
+                        return
 
             self.draw_objects()
