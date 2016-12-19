@@ -6,39 +6,33 @@ node {
             checkout scm
 
         stage 'Test'
-            sh 'virtualenv -p python3.5 venv'
 
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
+            sh """#!/bin/bash
+                export PATH="/root/miniconda3/bin:$PATH"
+                conda remove -y --name venv_${env.BRANCH_NAME} --all
+                conda create -y --name venv_${env.BRANCH_NAME}
+                source activate venv_${env.BRANCH_NAME}
+
                 pip install flake8
-                flake8 --exclude=venv ./
-            '''
+                flake8 ./
+            """
 
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
-                pip install -r server/requirements.txt
-                coverage run --omit '*venv*' --source './' server/tests.py
-            '''
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
-                coverage report --omit server/tests.py
-            '''
+            sh"""#!/bin/bash
+                export PATH="/root/miniconda3/bin:$PATH"
+                source activate venv_${env.BRANCH_NAME}
 
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
-                percentage=$(coverage report --omit server/tests.py | grep TOTAL | rev | cut -c -3 | rev | cut -c -2)
-                if [ $percentage -lt 60 ]; then echo "Low coverage!"; exit 1; fi
-            '''
-            sh 'rm -rf venv'
+                pip install -r websocket_server/requirements.txt
+                cd websocket_server && python tests.py
+            """
 
         if (env.BRANCH_NAME == 'master') {
             stage 'Deploy'
                 sh 'cd deploy && echo "193.124.177.175 ansible_ssh_user=deploy" > ./inventory.ini'
-                sh "cd deploy && ansible-playbook --private-key ~/.ssh/id_rsa -i inventory.ini playbook-deploy.yml --extra-vars \"BRANCH_NAME=${env.BRANCH_NAME} PORT=8001\""
+                sh "cd deploy && ansible-playbook --private-key ~/.ssh/id_rsa -i inventory.ini playbook-deploy.yml --extra-vars \"BRANCH_NAME=${env.BRANCH_NAME} WEBSOCKET_PORT=9000\""
         } else if (env.BRANCH_NAME == 'develop') {
             stage 'Deploy'
                 sh 'cd deploy && echo "193.124.177.175 ansible_ssh_user=deploy" > ./inventory.ini'
-                sh "cd deploy && ansible-playbook --private-key ~/.ssh/id_rsa -i inventory.ini playbook-deploy.yml --extra-vars \"BRANCH_NAME=${env.BRANCH_NAME} PORT=8002\""
+                sh "cd deploy && ansible-playbook --private-key ~/.ssh/id_rsa -i inventory.ini playbook-deploy.yml --extra-vars \"BRANCH_NAME=${env.BRANCH_NAME} WEBSOCKET_PORT=9001\""
         }
 
     } catch (err) {

@@ -28,17 +28,17 @@ services:
 
     restart: unless-stopped
 
-  web:
+  websocket:
     build:
-      context: ./server
-    hostname: "web-${BRANCH_NAME}"
+      context: ./websocket_server/
+    hostname: "websocket-${BRANCH_NAME}"
     networks:
       infra_default:
         aliases:
-          - "web-${BRANCH_NAME}"
+          - "websocket-${BRANCH_NAME}"
     user: root
     ports:
-      - "${PORT}:8000"
+      - "${WEBSOCKET_PORT}:9000"
 
     environment:
       BRANCH_NAME: ${BRANCH_NAME}
@@ -49,7 +49,7 @@ services:
     depends_on:
       - postgresql
 
-    restart: unless-stopped
+    restart: unless-stopped`
 
 networks:
   infra_default:
