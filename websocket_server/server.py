@@ -55,6 +55,7 @@ class GameServerProtocol(WebSocketServerProtocol):
                 self.Game.end_game('Game was crashed unexpectedly', wasClean=False)
             print(reason)
 
+
 if __name__ == '__main__':
 
     factory = WebSocketServerFactory(u'ws://0.0.0.0:9000')

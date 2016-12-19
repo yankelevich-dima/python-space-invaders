@@ -266,7 +266,7 @@ class Game(object):
             if element['type'] == 'EnemyGroup':
                 self.wave += 1
                 for subelement in element['objects']:
-                    enemy = Enemy(subelement['coordinates'], subelement['type'], subelement['id'])
+                    enemy = Enemy(subelement['coordinates'], subelement['enemy_type'], subelement['id'])
                     enemy.health = subelement['health']
                     self.enemies.add(enemy)
             if element['type'] == 'PlatformGroup':

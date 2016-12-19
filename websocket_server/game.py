@@ -6,7 +6,6 @@ import logging
 import pygame
 
 from config import ENEMY_CONFIG, GAME_CONFIG, PLATFORM_CONFIG, PLAYER_CONFIG
-from models import User
 
 DIRECTION_STAY = 0
 DIRECTION_RIGHT = 1
@@ -167,7 +166,7 @@ class Enemy(GameObject):
             'type': 'Enemy',
             'id': id(self),
             'health': self.health,
-            'type': self.type,
+            'enemy_type': self.type,
             'coordinates': [self.coordinates.x, self.coordinates.y]
         }
 
