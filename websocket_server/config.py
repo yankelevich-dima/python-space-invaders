@@ -17,7 +17,7 @@ PLATFORM_CONFIG = config['PLATFORM_PARAMS']
 PLAYER_CONFIG = config['PLAYER_PARAMS']
 
 BRANCH_NAME = os.getenv('BRANCH_NAME', 'develop')
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://postgres:@localhost:5432/space-invaders'.format(BRANCH_NAME)
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://docker:docker@postgresql-{}:5432/space-invaders'.format(BRANCH_NAME)
 SQLALCHEMY_ENGINE = create_engine(SQLALCHEMY_DATABASE_URI)
 
 LOGGER = logging.getLogger(__name__)
