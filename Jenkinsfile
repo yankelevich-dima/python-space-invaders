@@ -6,25 +6,25 @@ node {
             checkout scm
 
         stage 'Test'
-            sh 'virtualenv -p python3.5 venv'
 
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
+            sh """#!/bin/bash
+                export PATH="/root/miniconda3/bin:$PATH"
+                conda remove -y --name venv_${env.BRANCH_NAME} --all
+                conda create --name venv_${env.BRANCH_NAME}
+                source activate venv
+
                 pip install flake8
-                flake8 --exclude=venv ./
-            '''
+                flake8 ./
+            """
 
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
+            sh"""#!/bin/bash
                 pip install -r websocket_server/requirements.txt
-                coverage run --omit '*venv*' --source './' websocket_server/tests.py
-            '''
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
-                coverage report --omit websocket_server/tests.py
-            '''
+                cd websocket_server && python tests.py
+            """
 
-            sh 'rm -rf venv'
+            sh"""#!bin/bash
+                conda remove -y --name venv_${env.BRANCH_NAME} --all
+            """
 
         if (env.BRANCH_NAME == 'master') {
             stage 'Deploy'
