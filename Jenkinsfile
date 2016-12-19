@@ -18,6 +18,9 @@ node {
             """
 
             sh"""#!/bin/bash
+                export PATH="/root/miniconda3/bin:$PATH"
+                source activate venv
+
                 pip install -r websocket_server/requirements.txt
                 cd websocket_server && python tests.py
             """
