@@ -11,7 +11,7 @@ node {
                 export PATH="/root/miniconda3/bin:$PATH"
                 conda remove -y --name venv_${env.BRANCH_NAME} --all
                 conda create --name venv_${env.BRANCH_NAME}
-                source activate venv
+                source activate venv_${env.BRANCH_NAME}
 
                 pip install flake8
                 flake8 ./
@@ -19,7 +19,7 @@ node {
 
             sh"""#!/bin/bash
                 export PATH="/root/miniconda3/bin:$PATH"
-                source activate venv
+                source activate venv_${env.BRANCH_NAME}
 
                 pip install -r websocket_server/requirements.txt
                 cd websocket_server && python tests.py
