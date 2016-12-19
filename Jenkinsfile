@@ -16,19 +16,14 @@ node {
 
             sh '''#!/bin/bash
                 source ./venv/bin/activate
-                pip install -r flask_server/requirements.txt
-                coverage run --omit '*venv*' --source './' flask_server/tests.py
+                pip install -r websocket_server/requirements.txt
+                coverage run --omit '*venv*' --source './' websocket_server/tests.py
             '''
             sh '''#!/bin/bash
                 source ./venv/bin/activate
-                coverage report --omit flask_server/tests.py
+                coverage report --omit websocket_server/tests.py
             '''
 
-            sh '''#!/bin/bash
-                source ./venv/bin/activate
-                percentage=$(coverage report --omit flask_server/tests.py | grep TOTAL | rev | cut -c -3 | rev | cut -c -2)
-                if [ $percentage -lt 60 ]; then echo "Low coverage!"; exit 1; fi
-            '''
             sh 'rm -rf venv'
 
         if (env.BRANCH_NAME == 'master') {

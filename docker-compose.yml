@@ -28,29 +28,6 @@ services:
 
     restart: unless-stopped
 
-  flask:
-    build:
-      context: ./flask_server/
-    hostname: "flask-${BRANCH_NAME}"
-    networks:
-      infra_default:
-        aliases:
-          - "flask-${BRANCH_NAME}"
-    user: root
-    ports:
-      - "${FLASK_PORT}:8000"
-
-    environment:
-      BRANCH_NAME: ${BRANCH_NAME}
-
-    volumes:
-      - .:/app
-
-    depends_on:
-      - postgresql
-
-    restart: unless-stopped
-
   websocket:
     build:
       context: ./websocket_server/

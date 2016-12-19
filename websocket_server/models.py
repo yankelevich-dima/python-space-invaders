@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from config import SQLALCHEMY_DATABASE_URI
+import config
 
 Base = declarative_base()
 
@@ -26,8 +26,7 @@ class User(Base):
 
     @staticmethod
     def get_session():
-        engine = create_engine(SQLALCHEMY_DATABASE_URI)
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=config.SQLALCHEMY_ENGINE)
         session = Session()
         return session
 
@@ -46,6 +45,7 @@ class User(Base):
     def update_highscore(self, score):
         session = User.get_session()
         try:
+            session.add(self)
             self.scores = max(self.scores, score)
             session.add(self)
             session.commit()
@@ -56,16 +56,13 @@ class User(Base):
     def get_user_by_username(username):
         session = User.get_session()
         try:
-            return session.query(User).filter_by(username=username).first()
+            user = session.query(User).filter_by(username=username).first()
+            return user
         finally:
             session.close()
 
     @staticmethod
     def check_user_login(username, password):
-        session = User.get_session()
-        try:
-            user = User.get_user_by_username(username)
-            if user is not None and user.password == hashlib.md5(password.encode('utf-8')).hexdigest():
-                return user
-        finally:
-            session.close()
+        user = User.get_user_by_username(username)
+        if user is not None and user.password == hashlib.md5(password.encode('utf-8')).hexdigest():
+            return user

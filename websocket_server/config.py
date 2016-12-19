@@ -1,6 +1,7 @@
 import yaml
 import logging
 import os
+from sqlalchemy import create_engine
 
 
 def load_yaml_config(path_to_file):
@@ -17,6 +18,7 @@ PLAYER_CONFIG = config['PLAYER_PARAMS']
 
 BRANCH_NAME = os.getenv('BRANCH_NAME', 'develop')
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://postgres:@localhost:5432/space-invaders'.format(BRANCH_NAME)
+SQLALCHEMY_ENGINE = create_engine(SQLALCHEMY_DATABASE_URI)
 
 LOGGER = logging.getLogger(__name__)
 formatter = logging.Formatter('[%(asctime)s] - %(levelname)s - [%(game_id)s] - %(message)s')
