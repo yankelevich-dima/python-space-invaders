@@ -2,7 +2,7 @@ import hashlib
 import datetime
 
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy import create_engine, exc
+from sqlalchemy import exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
