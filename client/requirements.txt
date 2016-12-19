@@ -1,3 +1,4 @@
-pygame==1.9.2b6
+autobahn==0.16.0
+pygame==1.9.2b8
 PyYAML==3.11
-requests==2.11.1
+ntplib==0.3.3
