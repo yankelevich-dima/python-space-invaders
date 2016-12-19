@@ -10,7 +10,7 @@ node {
             sh """#!/bin/bash
                 export PATH="/root/miniconda3/bin:$PATH"
                 conda remove -y --name venv_${env.BRANCH_NAME} --all
-                conda create --name venv_${env.BRANCH_NAME}
+                conda create -y --name venv_${env.BRANCH_NAME}
                 source activate venv_${env.BRANCH_NAME}
 
                 pip install flake8
@@ -23,11 +23,6 @@ node {
 
                 pip install -r websocket_server/requirements.txt
                 cd websocket_server && python tests.py
-            """
-
-            sh"""#!bin/bash
-                export PATH="/root/miniconda3/bin:$PATH"
-                conda remove -y --name venv_${env.BRANCH_NAME} --all
             """
 
         if (env.BRANCH_NAME == 'master') {
