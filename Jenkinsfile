@@ -26,6 +26,7 @@ node {
             """
 
             sh"""#!bin/bash
+                export PATH="/root/miniconda3/bin:$PATH"
                 conda remove -y --name venv_${env.BRANCH_NAME} --all
             """
 
