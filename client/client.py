@@ -69,7 +69,7 @@ class GameClient(object):
 
     def run(self):
         self.loop = asyncio.get_event_loop()
-        coro = self.loop.create_connection(self.factory, '193.124.177.175', 9003)
+        coro = self.loop.create_connection(self.factory, '193.124.177.175', 9000)
         self.loop.run_until_complete(coro)
 
         try:
